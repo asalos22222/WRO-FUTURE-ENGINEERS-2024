@@ -1,114 +1,88 @@
-#include <Pixy2.h>
 #include <Servo.h>
+#include <movingAvg.h>
 
-Pixy2 pixy;
+const int servoPin = 9;
+
+int _output_PD5 = 43;
+int _output_PD4 = 45;
+int _output_PD7 = 41;
+int _output_PD6 = 39;
+int _output_PWM10 = 11;
+int _output_PWM9 = 10;
+
+const int trigPin = 12;
+const int echoPin = 13;
+
+int intunecat = 610;
+int luminos = 510;
+
+bool isturning = 0;
+unsigned long turnmillis = 0;
+
 Servo myservo;
-
-// Define the control pins for the L298N motor driver
-int motorLeftPin1 = 37;  // Left motor forward
-int motorLeftPin2 = 38;  // Left motor backward
-int motorRightPin1 = 39; // Right motor forward
-int motorRightPin2 = 40; // Right motor backward
-// Optional PWM pins
-int motorLeftPWM = 9;
-int motorRightPWM = 10;
-
-int numLaps = 0;
-const int maxLaps = 3;
-int yellowLinesDetected = 0; // Counter for yellow lines detected
-int blueLinesDetected = 0; // Counter for blue lines detected
+movingAvg mySensor(10);
 
 void setup() {
-  Serial.begin(115200);
-  pixy.init();
-  myservo.attach(3); // Pin for the servo motor
+    pinMode(_output_PD5, OUTPUT);
+    pinMode(_output_PD4, OUTPUT);
+    pinMode(_output_PD7, OUTPUT);
+    pinMode(_output_PD6, OUTPUT);
+    pinMode(_output_PWM10, OUTPUT);
+    pinMode(_output_PWM9, OUTPUT);
+    pinMode(A0, INPUT);
 
-  // Set the motor control pins as output
-  pinMode(motorLeftPin1, OUTPUT);
-  pinMode(motorLeftPin2, OUTPUT);
-  pinMode(motorRightPin1, OUTPUT);
-  pinMode(motorRightPin2, OUTPUT);
-  pinMode(motorLeftPWM, OUTPUT);
-  pinMode(motorRightPWM, OUTPUT);
+    pinMode(trigPin, OUTPUT);
+    pinMode(echoPin, INPUT);
+
+    myservo.attach(servoPin);
+    delay(100);
+    myservo.write(90);
+    delay(100);
+    mySensor.begin();
+
+    Serial.begin(9600);
 }
 
-void loop() {
-  pixy.ccc.getBlocks();
-  
-  if (pixy.ccc.numBlocks) {
-    for (int i = 0; i < pixy.ccc.numBlocks; i++) {
-      if (pixy.ccc.blocks[i].m_signature == 1) { // Yellow line detected
-        yellowLinesDetected++;
-        turnLeft();
-        delay(500); // Adjust delay to ensure the turn is completed
-        myservo.write(90); // Reset servo to straight position
-      } else if (pixy.ccc.blocks[i].m_signature == 2) { // Blue line detected
-        blueLinesDetected++;
-        turnRight();
-        delay(500); // Adjust delay to ensure the turn is completed
-        myservo.write(90); // Reset servo to straight position
-      }
-    }
-  }
-
-  moveForward();
-  delay(100); // Adjust time to avoid looping jumps
-
-  // Check if a full lap is completed
-  if (checkLapComplete()) {
-    numLaps++;
-    yellowLinesDetected = 0; // Reset yellow line counter
-    blueLinesDetected = 0; // Reset blue line counter
-    if (numLaps == maxLaps) {
-      stopMotors();
-      while (1); // Stop the program
-    }
-  }
+void inainte() {
+    myservo.write(90);
+    digitalWrite(_output_PD4, LOW);
+    digitalWrite(_output_PD5, HIGH);
+    digitalWrite(_output_PD6, LOW);
+    digitalWrite(_output_PD7, HIGH);
+    analogWrite(_output_PWM9, 100);
+    analogWrite(_output_PWM10, 100);
 }
 
 void turnLeft() {
-  // Turn left by stopping the right motor and running the left motor forward
-  analogWrite(motorLeftPWM, 255); // Full speed
-  digitalWrite(motorLeftPin1, HIGH);
-  digitalWrite(motorLeftPin2, LOW);
-  
-  analogWrite(motorRightPWM, 255); // Full speed
-  digitalWrite(motorRightPin1, LOW);
-  digitalWrite(motorRightPin2, LOW);
+    myservo.write(45);
+    digitalWrite(_output_PD4, LOW);
+    digitalWrite(_output_PD5, HIGH);
+    digitalWrite(_output_PD6, LOW);
+    digitalWrite(_output_PD7, HIGH);
+    analogWrite(_output_PWM9, 100);
+    analogWrite(_output_PWM10, 100);
 }
 
-void turnRight() {
-  // Turn right by stopping the left motor and running the right motor forward
-  analogWrite(motorLeftPWM, 255); // Full speed
-  digitalWrite(motorLeftPin1, LOW);
-  digitalWrite(motorLeftPin2, LOW);
-  
-  analogWrite(motorRightPWM, 255); // Full speed
-  digitalWrite(motorRightPin1, HIGH);
-  digitalWrite(motorRightPin2, LOW);
-}
+void loop() {
+    unsigned long currentmillis = millis();
+    int sensorData = analogRead(A0);
+    int sensorMovingAvg = mySensor.reading(sensorData);
 
-void moveForward() {
-  analogWrite(motorLeftPWM, 255); // Full speed
-  digitalWrite(motorLeftPin1, HIGH);
-  digitalWrite(motorLeftPin2, LOW);
-  
-  analogWrite(motorRightPWM, 255); // Full speed
-  digitalWrite(motorRightPin1, HIGH);
-  digitalWrite(motorRightPin2, LOW);
-}
+    Serial.println(sensorMovingAvg);
 
-void stopMotors() {
-  analogWrite(motorLeftPWM, 0);
-  analogWrite(motorRightPWM, 0);
-  
-  digitalWrite(motorLeftPin1, LOW);
-  digitalWrite(motorLeftPin2, LOW);
-  digitalWrite(motorRightPin1, LOW);
-  digitalWrite(motorRightPin2, LOW);
-}
+    if (sensorMovingAvg > 590) {
+        isturning = 1;
+        turnmillis = currentmillis;
+    }
 
-bool checkLapComplete() {
-  // Check if the required number of yellow and blue lines for a full lap are detected
-  return (yellowLinesDetected >= 4 && blueLinesDetected >= 4);
+    if (currentmillis - turnmillis > 1950) {
+        isturning = 0;
+    }
+
+    if (isturning) {
+        turnLeft();
+        mySensor.reset();
+    } else {
+        inainte();
+    }
 }
