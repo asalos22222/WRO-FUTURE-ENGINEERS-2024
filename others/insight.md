@@ -28,17 +28,29 @@ Furthermore, the Pixy 2 camera employs SPI (Serial Peripheral Interface) for com
 
 In essence, the Pixy 2 camera serves as a crucial sensory tool for our robot, providing it with the ability to visually identify and differentiate obstacles based on their colors. This capability significantly enhances our robot's decision-making process, allowing it to navigate complex environments with precision and efficiency. Moreover, its seamless integration through SPI communication ensures smooth operation within our existing system. The Pixy 2 camera stands as a testament to the advanced technology employed in our robot, contributing significantly to its performance in the WRO Future Engineers competition.
 
+# Compass Sensor
+
+The HMC5883L is a popular 3-axis digital compass sensor that is used to detect magnetic fields and determine orientation relative to Earth's magnetic field. It's widely used in robotics, navigation systems, drones, and other applications requiring precise heading or directional information.
+
+Applications:
+1.   Navigation: It’s often used in GPS and other navigation systems to provide accurate heading information.
+   
+2.   Drones and Robotics: The sensor helps maintain direction and orientation.
+
+3.   Augmented Reality: In AR applications, it can help align virtual objects with real-world directions.
+
+
 # Code Overview
 
 The robot's functionality is driven by a carefully crafted code that orchestrates its movements. Our algorithm focuses on moving the bot in a straight line, using the ultrasonic sensors to maintain and correct its position in the straight segments, and turning when the distance from an obstacle, detected by an ultrasonic sensor, is less than a certain threshold.
 
 # Library Inclusions
 
-The code includes essential libraries such as Pixy2.h, Wire.h, L298N.h, and Servo.h for interfacing with sensors and motor control. These libraries are used to extract visual data from the Pixy 2 camera, which is crucial for the robot to navigate accurately. We also use the Wire library for I2C communication, the L298N library for motor driver control, and the Servo library to communicate with our servo motors, allowing us to execute precise movements and turns based on the calculations in the code.
+The code includThe code utilizes key libraries including Pixy2.h, Wire.h, Adafruit_TCS34725.h, and Adafruit_HMC5883_U.h to interface with sensors and control motors. These libraries enable the robot to gather color data from the TCS34725 color sensor and direction data from the HMC5883L magnetometer. The Pixy 2 camera is used for visual detection, which plays a critical role in navigating the robot. The Wire library manages I2C communication between components, ensuring smooth data transmission. The motors are controlled via specific pins, allowing the robot to perform precise movements such as driving forward or turning based on real-time sensor readings, including color detection and heading adjustments.es essential libraries such as Pixy2.h, Wire.h, L298N.h, and Servo.h for interfacing with sensors and motor control. These libraries are used to extract visual data from the Pixy 2 camera, which is crucial for the robot to navigate accurately. We also use the Wire library for I2C communication, the L298N library for motor driver control, and the Servo library to communicate with our servo motors, allowing us to execute precise movements and turns based on the calculations in the code.
 
 # Pin Configuration
 
-The code sets up pin modes for the ultrasonic sensors, motors, and servo, ensuring proper communication between the components. We have utilized nearly all the pins on our Arduino, except for pins 9 and 10, thus maximizing the use of the Arduino Uno. To determine pin assignments, we aimed to minimize the distance between components to reduce wiring and soldering requirements. Additionally, some components, like our Pixy 2 camera, connect directly to pins 11, 12, and 13 via a dedicated cable, necessitating special adjustments for these connections.
+The code configures pin modes for the color sensor, compass, motors, and Pixy 2 camera, ensuring smooth communication between all components. Nearly all pins on the Arduino are utilized, optimizing the board's capacity. Pin assignments were chosen strategically to minimize wiring complexity and reduce the need for extensive soldering. Components like the Pixy 2 camera are directly connected to specific pins via a dedicated cable (pins 11, 12, and 13), requiring specialized connections. This setup ensures efficient signal transmission and reliable operation of the robot's navigation and sensor systems..
 
 
-Our robot stands as a testament to meticulous engineering and strategic component selection. With its distinctive frame design and differential drive system, it offers a robust foundation for agile maneuvers. The incorporation of ultrasonic sensors and a Pixy camera enhances its perception capabilities, establishing it as a formidable contender in the WRO Future Engineers competition.
+Our robot exemplifies meticulous engineering and thoughtful component selection, with a distinctive frame design and a differential drive system providing a robust foundation for agile maneuvers. The integration of a TCS34725 color sensor, HMC5883L compass, ultrasonic sensors, and a Pixy 2 camera significantly enhances its perception capabilities. These components work together seamlessly, enabling precise navigation and obstacle detection, making the robot a strong contender in the WRO Future Engineers competition.
